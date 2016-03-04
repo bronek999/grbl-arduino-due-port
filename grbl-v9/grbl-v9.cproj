@@ -1,0 +1,321 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="14.0">
+  <PropertyGroup>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectVersion>7.0</ProjectVersion>
+    <ToolchainName>com.Atmel.ARMGCC.C</ToolchainName>
+    <ProjectGuid>dce6c7e3-ee26-4d79-826b-08594b9ad897</ProjectGuid>
+    <avrdevice>ATSAM3X8E</avrdevice>
+    <avrdeviceseries>none</avrdeviceseries>
+    <OutputType>Executable</OutputType>
+    <Language>C</Language>
+    <OutputFileName>$(MSBuildProjectName)</OutputFileName>
+    <OutputFileExtension>.elf</OutputFileExtension>
+    <OutputDirectory>$(MSBuildProjectDirectory)\$(Configuration)</OutputDirectory>
+    <AssemblyName>grbl-v9</AssemblyName>
+    <Name>grbl-v9</Name>
+    <RootNamespace>grbl-v9</RootNamespace>
+    <ToolchainFlavour>Native</ToolchainFlavour>
+    <KeepTimersRunning>true</KeepTimersRunning>
+    <OverrideVtor>false</OverrideVtor>
+    <CacheFlash>true</CacheFlash>
+    <ProgFlashFromRam>true</ProgFlashFromRam>
+    <RamSnippetAddress>0x20000000</RamSnippetAddress>
+    <UncachedRange />
+    <preserveEEPROM>true</preserveEEPROM>
+    <OverrideVtorValue>exception_table</OverrideVtorValue>
+    <BootSegment>2</BootSegment>
+    <eraseonlaunchrule>4</eraseonlaunchrule>
+    <ExternalProgrammingToolCommand />
+    <AsfFrameworkConfig>
+      <framework-data xmlns="">
+        <options />
+        <configurations />
+        <files />
+        <documentation help="" />
+        <offline-documentation help="" />
+        <dependencies>
+          <content-extension eid="atmel.asf" uuidref="Atmel.ASF" version="3.27.3" />
+        </dependencies>
+      </framework-data>
+    </AsfFrameworkConfig>
+    <avrtool>com.atmel.avrdbg.tool.samice</avrtool>
+    <avrtoolserialnumber>58001139</avrtoolserialnumber>
+    <avrdeviceexpectedsignature>0x285E0A60</avrdeviceexpectedsignature>
+    <com_atmel_avrdbg_tool_samice>
+      <ToolOptions>
+        <InterfaceProperties>
+          <SwdClock>11886428</SwdClock>
+        </InterfaceProperties>
+        <InterfaceName>SWD</InterfaceName>
+      </ToolOptions>
+      <ToolType>com.atmel.avrdbg.tool.samice</ToolType>
+      <ToolNumber>58001139</ToolNumber>
+      <ToolName>J-Link</ToolName>
+    </com_atmel_avrdbg_tool_samice>
+    <avrtoolinterface>SWD</avrtoolinterface>
+    <avrtoolinterfaceclock>11886428</avrtoolinterfaceclock>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <ToolchainSettings>
+      <ArmGcc>
+  <armgcc.common.outputfiles.hex>True</armgcc.common.outputfiles.hex>
+  <armgcc.common.outputfiles.lss>True</armgcc.common.outputfiles.lss>
+  <armgcc.common.outputfiles.eep>True</armgcc.common.outputfiles.eep>
+  <armgcc.common.outputfiles.bin>True</armgcc.common.outputfiles.bin>
+  <armgcc.common.outputfiles.srec>True</armgcc.common.outputfiles.srec>
+  <armgcc.compiler.symbols.DefSymbols>
+    <ListValues>
+      <Value>NDEBUG</Value>
+    </ListValues>
+  </armgcc.compiler.symbols.DefSymbols>
+  <armgcc.compiler.directories.IncludePaths>
+    <ListValues>
+      <Value>%24(PackRepoDir)\atmel\SAM3X_DFP\1.0.33\include</Value>
+      <Value>%24(PackRepoDir)\arm\cmsis\4.2.0\CMSIS\Include\</Value>
+    </ListValues>
+  </armgcc.compiler.directories.IncludePaths>
+  <armgcc.compiler.optimization.level>Optimize for size (-Os)</armgcc.compiler.optimization.level>
+  <armgcc.compiler.optimization.PrepareFunctionsForGarbageCollection>True</armgcc.compiler.optimization.PrepareFunctionsForGarbageCollection>
+  <armgcc.compiler.warnings.AllWarnings>True</armgcc.compiler.warnings.AllWarnings>
+  <armgcc.linker.libraries.Libraries>
+    <ListValues>
+      <Value>libm</Value>
+    </ListValues>
+  </armgcc.linker.libraries.Libraries>
+  <armgcc.linker.libraries.LibrarySearchPaths>
+    <ListValues>
+      <Value>%24(ProjectDir)\Device_Startup</Value>
+    </ListValues>
+  </armgcc.linker.libraries.LibrarySearchPaths>
+  <armgcc.linker.optimization.GarbageCollectUnusedSections>True</armgcc.linker.optimization.GarbageCollectUnusedSections>
+  <armgcc.linker.miscellaneous.LinkerFlags>-Tsam3x8e_flash.ld</armgcc.linker.miscellaneous.LinkerFlags>
+  <armgcc.preprocessingassembler.general.IncludePaths>
+    <ListValues>
+      <Value>%24(PackRepoDir)\atmel\SAM3X_DFP\1.0.33\include</Value>
+      <Value>%24(PackRepoDir)\arm\cmsis\4.2.0\CMSIS\Include\</Value>
+    </ListValues>
+  </armgcc.preprocessingassembler.general.IncludePaths>
+</ArmGcc>
+    </ToolchainSettings>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <ToolchainSettings>
+      <ArmGcc>
+  <armgcc.common.outputfiles.hex>True</armgcc.common.outputfiles.hex>
+  <armgcc.common.outputfiles.lss>True</armgcc.common.outputfiles.lss>
+  <armgcc.common.outputfiles.eep>True</armgcc.common.outputfiles.eep>
+  <armgcc.common.outputfiles.bin>True</armgcc.common.outputfiles.bin>
+  <armgcc.common.outputfiles.srec>True</armgcc.common.outputfiles.srec>
+  <armgcc.compiler.symbols.DefSymbols>
+    <ListValues>
+      <Value>DEBUG</Value>
+    </ListValues>
+  </armgcc.compiler.symbols.DefSymbols>
+  <armgcc.compiler.directories.IncludePaths>
+    <ListValues>
+      <Value>%24(PackRepoDir)\atmel\SAM3X_DFP\1.0.33\include</Value>
+      <Value>%24(PackRepoDir)\arm\cmsis\4.2.0\CMSIS\Include\</Value>
+    </ListValues>
+  </armgcc.compiler.directories.IncludePaths>
+  <armgcc.compiler.optimization.level>Optimize (-O1)</armgcc.compiler.optimization.level>
+  <armgcc.compiler.optimization.PrepareFunctionsForGarbageCollection>True</armgcc.compiler.optimization.PrepareFunctionsForGarbageCollection>
+  <armgcc.compiler.optimization.DebugLevel>Maximum (-g3)</armgcc.compiler.optimization.DebugLevel>
+  <armgcc.compiler.warnings.AllWarnings>True</armgcc.compiler.warnings.AllWarnings>
+  <armgcc.linker.libraries.Libraries>
+    <ListValues>
+      <Value>libm</Value>
+    </ListValues>
+  </armgcc.linker.libraries.Libraries>
+  <armgcc.linker.libraries.LibrarySearchPaths>
+    <ListValues>
+      <Value>%24(ProjectDir)\Device_Startup</Value>
+    </ListValues>
+  </armgcc.linker.libraries.LibrarySearchPaths>
+  <armgcc.linker.optimization.GarbageCollectUnusedSections>True</armgcc.linker.optimization.GarbageCollectUnusedSections>
+  <armgcc.linker.miscellaneous.LinkerFlags>-Tsam3x8e_flash.ld</armgcc.linker.miscellaneous.LinkerFlags>
+  <armgcc.assembler.debugging.DebugLevel>Default (-g)</armgcc.assembler.debugging.DebugLevel>
+  <armgcc.preprocessingassembler.general.IncludePaths>
+    <ListValues>
+      <Value>%24(PackRepoDir)\atmel\SAM3X_DFP\1.0.33\include</Value>
+      <Value>%24(PackRepoDir)\arm\cmsis\4.2.0\CMSIS\Include\</Value>
+    </ListValues>
+  </armgcc.preprocessingassembler.general.IncludePaths>
+  <armgcc.preprocessingassembler.debugging.DebugLevel>Default (-Wa,-g)</armgcc.preprocessingassembler.debugging.DebugLevel>
+</ArmGcc>
+    </ToolchainSettings>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="config.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="coolant_control.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="coolant_control.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="cpu_map.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="defaults.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="defaults_generic.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="Device_Startup\startup_sam3xa.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="Device_Startup\system_sam3xa.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="eeprom.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="eeprom.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="efc.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="efc.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="flash_efc.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="flash_efc.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="flash_storage.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="flash_storage.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="gcode.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="gcode.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="grbl.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="limits.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="limits.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="main.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="motion_control.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="motion_control.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="nuts_bolts.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="nuts_bolts.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="planner.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="planner.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="print.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="print.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="probe.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="probe.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="protocol.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="protocol.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="ra8875.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="ra8875.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="report.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="report.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="serial.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="serial.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="settings.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="settings.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="spindle_control.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="spindle_control.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="stepper.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="stepper.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="syscall.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="system.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="system.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="utils.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="utils.h">
+      <SubType>compile</SubType>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Device_Startup\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Device_Startup\sam3x8e_flash.ld">
+      <SubType>compile</SubType>
+    </None>
+    <None Include="Device_Startup\sam3x8e_sram.ld">
+      <SubType>compile</SubType>
+    </None>
+    <None Include="Device_Startup\sam3xa_flash.ld">
+      <SubType>compile</SubType>
+    </None>
+    <None Include="Device_Startup\sam3xa_sram.ld">
+      <SubType>compile</SubType>
+    </None>
+  </ItemGroup>
+  <Import Project="$(AVRSTUDIO_EXE_PATH)\\Vs\\Compiler.targets" />
+</Project>
