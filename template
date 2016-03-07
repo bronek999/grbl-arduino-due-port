@@ -75,9 +75,9 @@ znovu:
 	lngth = length;
 	delay_ms(modbusdelay);	//	Timeout
 	crc = modbus_crc(cmd,length);
-	modbus_rec_pos = 0;		//	vyprazdnim prijimaci buffer
+	modbus_rec_pos = 0;		//	clear buffer
 	//		RS485_writechar(STX);
-	modbus_flow_write();	//	RS485 vysiela
+	modbus_flow_write();	//	RS485 sending
 	while(lngth--)
 	{
 		c = *cmd++;
@@ -88,18 +88,18 @@ znovu:
 	c = crc >> 8;
 	modbus_putchar(c);
 //	while(!(MODBUS_USART->US_CSR & UART_SR_TXRDY));
-	delay_ms(modbusdelay);//pockam kym dovysiela posledny znak
-	modbus_flow_read();	//	RS485 nevysiela
-	delay_ms(100);			//	pocam na odpoved
-	if(modbus_rec_pos > 2)	//	Ak menic odoslal spat minimalne tri znaky
+	delay_ms(modbusdelay);//	Wait for last char sent
+	modbus_flow_read();	//	RS485 receive
+	delay_ms(100);			//	wait for answer
+	if(modbus_rec_pos > 2)	//	Received "valid" answer
 	{
-		if(!memcmp(modbus_rec_buffer,cmd_buff,3)) //	 kontrolujem vratene prve 3 znaky
+		if(!memcmp(modbus_rec_buffer,cmd_buff,3)) //	 CRC check
 			return 1;
 		beep(50);
 		if(recursive_counter--)
 			goto znovu;
 	}
-	else	//	 menic nic neodoslal 20 krat sa pokusim odoslat prikaz
+	else	//	 No data, try again
 	{
 		beep(50);
 		if(recursive_counter--)
@@ -115,7 +115,7 @@ void modbus_init(void)
 	uint32_t ul_sr;
 //	riadenie smeru toku dat je PD7
 	PMC->PMC_PCER0 |= (1UL << ID_PIOD);
-	PIOD->PIO_OER |= PIO_PD7;		// Riadenie toku dat
+	PIOD->PIO_OER |= PIO_PD7;		// Flow control RS485 trasmit<>receive
 	PIOD->PIO_PUER |= PIO_PD7;		
 	// ==> Pin configuration
 	// Disable interrupts on Rx and Tx
@@ -158,7 +158,7 @@ void modbus_init(void)
 	SysTick_CTRL_ENABLE_Msk;               //Enable SysTick IRQ and SysTick Timer */
 
 
-void modbus_right(int rpm1)	//	rozsah je 0 - 18000
+void modbus_right(int rpm1)	//	rpm range  0 - 18000
 {
 	unsigned char buffer[20];
 	double  Percent;
@@ -173,8 +173,8 @@ void modbus_right(int rpm1)	//	rozsah je 0 - 18000
 	FreqHi = FreqValue >> 8;
 	FreqLo = FreqValue & 0xFF;
 	
-	buffer[0] = 0x01;	// adresa
-	buffer[1] = 0x0F;	//	zapis multi coil
+	buffer[0] = 0x01;	// 	address
+	buffer[1] = 0x0F;	//	write multi coil
 	buffer[2] = 0x00;
 	buffer[3] = 0x00;
 	buffer[4] = 0x00;
@@ -185,13 +185,13 @@ void modbus_right(int rpm1)	//	rozsah je 0 - 18000
 	buffer[9] =FreqLo;
 	buffer[10]=FreqHi;
 	modbus_cmd(buffer,11);
-	if((spindle_dir != 1) || (rpm != rpm1))	//	Pockam na zastavenie, spustenie vretena
+	if((spindle_dir != 1) || (rpm != rpm1))	//	Wait for spindle start/stop,..
 		delay_ms(SPINDLE_DELAY);
 	rpm = abs(rpm1);
 	spindle_dir = 1;
 }
 
-void modbus_left(int rpm1)	//	rozsah je -18000 - 0
+void modbus_left(int rpm1)	//	range -18000 - 0
 {
 	unsigned char buffer[20];
 	double  Percent;
@@ -206,8 +206,8 @@ void modbus_left(int rpm1)	//	rozsah je -18000 - 0
 	FreqHi = FreqValue >> 8;
 	FreqLo = FreqValue & 0xFF;
 	
-	buffer[0] = 0x01;	// adresa
-	buffer[1] = 0x0F;	//	zapis multi coil
+	buffer[0] = 0x01;	// address
+	buffer[1] = 0x0F;	//	write  multi coil
 	buffer[2] = 0x00;
 	buffer[3] = 0x00;
 	buffer[4] = 0x00;
@@ -218,7 +218,7 @@ void modbus_left(int rpm1)	//	rozsah je -18000 - 0
 	buffer[9] =FreqLo;
 	buffer[10]=FreqHi;
 	modbus_cmd(buffer,11);
-	if((spindle_dir != 2) || (rpm != rpm1))	//	Pockam na zastavenie, spustenie vretena
+	if((spindle_dir != 2) || (rpm != rpm1))	//	wait for start/stop
 		delay_ms(SPINDLE_DELAY);
 	rpm = abs(rpm1);
 	spindle_dir = 2;
@@ -236,8 +236,8 @@ void modbus_stop(void)
 	FreqHi = FreqValue >> 8;
 	FreqLo = FreqValue & 0xFF;
 	
-	buffer[0] = 0x01;	// adresa
-	buffer[1] = 0x0F;	//	zapis multi coil
+	buffer[0] = 0x01;	// address
+	buffer[1] = 0x0F;	//	write multi coil
 	buffer[2] = 0x00;
 	buffer[3] = 0x00;
 	buffer[4] = 0x00;
@@ -248,7 +248,7 @@ void modbus_stop(void)
 	buffer[9] =FreqLo;
 	buffer[10]=FreqHi;
 	modbus_cmd(buffer,11);
-	if(spindle_dir)	//	Pockam na zastavenie, spustenie vretena
+	if(spindle_dir)	//	Wait
 		delay_ms(SPINDLE_DELAY);
 	spindle_dir = 0;
 }
