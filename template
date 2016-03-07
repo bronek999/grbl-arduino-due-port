@@ -1,0 +1,254 @@
+#define MODBUS_USART USART1
+#define SPINDLE_DELAY 100
+
+
+#define modbus_flow_write()	PIOD->PIO_SODR = PIO_PD7; 
+#define modbus_flow_read()  PIOD->PIO_CODR = PIO_PD7;
+
+int rpm=5000;
+uint8_t spindle_dir = 0;
+int modbusdelay = 10;
+
+char modbus_rec_buffer[32];
+int modbus_rec_pos = 0;
+
+
+int modbus_putchar(const uint8_t c)
+{
+	// Check if the transmitter is ready
+	while(!(MODBUS_USART->US_CSR & UART_SR_TXRDY));
+	MODBUS_USART->US_THR = c;
+	return 0;
+}
+
+static inline int modbus_getchar(void)
+{
+	// Check if the receiver is ready
+	if((MODBUS_USART->US_CSR & US_CSR_RXRDY) == 0)
+		return -1;
+	// Read the character
+	if(modbus_rec_pos < 32)
+		modbus_rec_buffer[modbus_rec_pos] = MODBUS_USART->US_RHR;
+	modbus_rec_pos++;
+	return 0;
+}
+
+
+void USART1_Handler(void)
+{
+	// Check if the interrupt source is receive ready
+	if(MODBUS_USART->US_IMR & US_IMR_RXRDY)
+		modbus_getchar();
+}
+
+uint16_t modbus_crc(unsigned char* data, unsigned char length)
+{
+	int j;
+	unsigned int reg_crc=0xFFFF;
+	while(length--)
+	{
+		reg_crc ^= *data++;
+		for(j=0;j<8;j++)
+		{
+			if(reg_crc & 0x01)
+			{ /* LSB(b0)=1 */
+				reg_crc=(reg_crc>>1) ^ 0xA001;
+			}else
+			{
+				reg_crc=reg_crc >>1;
+			}
+		}
+	}
+	return reg_crc;
+}
+uint8_t modbus_cmd(unsigned char* cmd, unsigned char length)
+{
+	unsigned int crc;
+	unsigned char c;
+	int lngth;
+	char cmd_buff[20];
+	int recursive_counter = 5;
+	if(OnlySizing) return 1;
+	memcpy(cmd_buff,cmd,length);
+	cmd_buff[length] = 0;
+znovu:
+	lngth = length;
+	delay_ms(modbusdelay);	//	Timeout
+	crc = modbus_crc(cmd,length);
+	modbus_rec_pos = 0;		//	vyprazdnim prijimaci buffer
+	//		RS485_writechar(STX);
+	modbus_flow_write();	//	RS485 vysiela
+	while(lngth--)
+	{
+		c = *cmd++;
+		modbus_putchar(c);
+	}
+	c = crc & 0x00FF;
+	modbus_putchar(c);
+	c = crc >> 8;
+	modbus_putchar(c);
+//	while(!(MODBUS_USART->US_CSR & UART_SR_TXRDY));
+	delay_ms(modbusdelay);//pockam kym dovysiela posledny znak
+	modbus_flow_read();	//	RS485 nevysiela
+	delay_ms(100);			//	pocam na odpoved
+	if(modbus_rec_pos > 2)	//	Ak menic odoslal spat minimalne tri znaky
+	{
+		if(!memcmp(modbus_rec_buffer,cmd_buff,3)) //	 kontrolujem vratene prve 3 znaky
+			return 1;
+		beep(50);
+		if(recursive_counter--)
+			goto znovu;
+	}
+	else	//	 menic nic neodoslal 20 krat sa pokusim odoslat prikaz
+	{
+		beep(50);
+		if(recursive_counter--)
+			goto znovu;
+	}
+	beep(1000);
+	return 0;
+}
+
+
+void modbus_init(void)
+{
+	uint32_t ul_sr;
+//	riadenie smeru toku dat je PD7
+	PMC->PMC_PCER0 |= (1UL << ID_PIOD);
+	PIOD->PIO_OER |= PIO_PD7;		// Riadenie toku dat
+	PIOD->PIO_PUER |= PIO_PD7;		
+	// ==> Pin configuration
+	// Disable interrupts on Rx and Tx
+	PIOA->PIO_IDR = PIO_PA12A_RXD1 | PIO_PA13A_TXD1;
+	// Disable the PIO of the Rx and Tx pins so that the peripheral controller can use them
+	PIOA->PIO_PDR = PIO_PA12A_RXD1 | PIO_PA13A_TXD1;
+	// Read current peripheral AB select register and set the Rx and Tx pins to 0 (Peripheral A function)
+	ul_sr = PIOA->PIO_ABSR;
+	PIOA->PIO_ABSR &= ~(PIO_PA12A_RXD1 | PIO_PA13A_TXD1) & ul_sr;
+	// Enable the pull up on the Rx and Tx pin
+	PIOA->PIO_PUER = PIO_PA12A_RXD1 | PIO_PA13A_TXD1;
+	// ==> Actual uart configuration
+	// Enable the peripheral uart controller
+	PMC->PMC_PCER0 |= (1UL << ID_USART1) |  (1UL << ID_PIOA );
+	// Reset and disable receiver & transmitter
+	MODBUS_USART->US_CR = US_CR_RSTRX | US_CR_RSTTX | US_CR_RXDIS | US_CR_TXDIS;
+	// Set the baudrate to 115200
+//	MODBUS_USART->US_BRGR = 45; // 84000000 / 16 * x = BaudRate (write x into UART_BRGR)
+	MODBUS_USART->US_BRGR = 546; // 84000000 / 16 * x = BaudRate (write x into UART_BRGR)
+	// No Parity
+	MODBUS_USART->US_MR = (0x0 << 0) |  (0x0 << 4) | (0x3 << 6) | (0x4 << 9) |  (0x0 << 12) |  (0x0 << 14) ; // (USART) Normal Mode 
+	// Disable PDC channel requests
+	MODBUS_USART->US_PTCR = US_PTCR_RXTDIS | US_PTCR_TXTDIS;
+	// Disable / Enable interrupts on end of receive
+	MODBUS_USART->US_IDR = 0xFFFFFFFF;
+	NVIC_EnableIRQ(USART1_IRQn);
+	MODBUS_USART->US_IER = US_IER_RXRDY;
+	// Enable receiver and trasmitter
+	MODBUS_USART->US_CR = US_CR_RXEN | US_CR_TXEN;
+	
+}
+
+
+/*	#define SYS_TICKS      (84)	//	84Mhz
+	SysTick->LOAD  = (SYS_TICKS & SysTick_LOAD_RELOAD_Msk) - 1;   // set reload register
+	NVIC_SetPriority (SysTick_IRQn, 8);            //set Priority for Systick Interrupt
+	SysTick->VAL   = 0;                                 //Load the SysTick Counter Value 
+	SysTick->CTRL  = SysTick_CTRL_CLKSOURCE_Msk |
+	SysTick_CTRL_TICKINT_Msk   |
+	SysTick_CTRL_ENABLE_Msk;               //Enable SysTick IRQ and SysTick Timer */
+
+
+void modbus_right(int rpm1)	//	rozsah je 0 - 18000
+{
+	unsigned char buffer[20];
+	double  Percent;
+	uint16_t FreqValue ;
+	uint8_t FreqHi,FreqLo;
+
+	Percent = rpm1;
+	Percent = Percent / 2 + 9000;
+	Percent = Percent / 18000;
+	FreqValue = 16384 * Percent;
+	Percent = Percent * 100;
+	FreqHi = FreqValue >> 8;
+	FreqLo = FreqValue & 0xFF;
+	
+	buffer[0] = 0x01;	// adresa
+	buffer[1] = 0x0F;	//	zapis multi coil
+	buffer[2] = 0x00;
+	buffer[3] = 0x00;
+	buffer[4] = 0x00;
+	buffer[5] = 0x20;
+	buffer[6] = 0x04;
+	buffer[7] = 0x7C;
+	buffer[8] = 0x04;
+	buffer[9] =FreqLo;
+	buffer[10]=FreqHi;
+	modbus_cmd(buffer,11);
+	if((spindle_dir != 1) || (rpm != rpm1))	//	Pockam na zastavenie, spustenie vretena
+		delay_ms(SPINDLE_DELAY);
+	rpm = abs(rpm1);
+	spindle_dir = 1;
+}
+
+void modbus_left(int rpm1)	//	rozsah je -18000 - 0
+{
+	unsigned char buffer[20];
+	double  Percent;
+	uint16_t FreqValue ;
+	uint8_t FreqHi,FreqLo;
+
+	Percent = -abs(rpm1);
+	Percent = Percent / 2 + 9000;
+	Percent = Percent / 18000;
+	FreqValue = 16384 * Percent;
+	Percent = Percent * 100;
+	FreqHi = FreqValue >> 8;
+	FreqLo = FreqValue & 0xFF;
+	
+	buffer[0] = 0x01;	// adresa
+	buffer[1] = 0x0F;	//	zapis multi coil
+	buffer[2] = 0x00;
+	buffer[3] = 0x00;
+	buffer[4] = 0x00;
+	buffer[5] = 0x20;
+	buffer[6] = 0x04;
+	buffer[7] = 0x7C;
+	buffer[8] = 0x04;
+	buffer[9] =FreqLo;
+	buffer[10]=FreqHi;
+	modbus_cmd(buffer,11);
+	if((spindle_dir != 2) || (rpm != rpm1))	//	Pockam na zastavenie, spustenie vretena
+		delay_ms(SPINDLE_DELAY);
+	rpm = abs(rpm1);
+	spindle_dir = 2;
+}
+void modbus_stop(void)	
+{
+	unsigned char buffer[20];
+	double  Percent;
+	uint16_t FreqValue ;
+	uint8_t FreqHi,FreqLo;
+
+	Percent = 0.5;
+	FreqValue = 16384 * Percent;
+	Percent = Percent * 100;
+	FreqHi = FreqValue >> 8;
+	FreqLo = FreqValue & 0xFF;
+	
+	buffer[0] = 0x01;	// adresa
+	buffer[1] = 0x0F;	//	zapis multi coil
+	buffer[2] = 0x00;
+	buffer[3] = 0x00;
+	buffer[4] = 0x00;
+	buffer[5] = 0x20;
+	buffer[6] = 0x04;
+	buffer[7] = 0x3C;
+	buffer[8] = 0x04;
+	buffer[9] =FreqLo;
+	buffer[10]=FreqHi;
+	modbus_cmd(buffer,11);
+	if(spindle_dir)	//	Pockam na zastavenie, spustenie vretena
+		delay_ms(SPINDLE_DELAY);
+	spindle_dir = 0;
+}
